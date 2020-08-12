@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        sh 'go build -v -o orderlunch.bin'
+        sh 'ls -la'
       }
     }
 
