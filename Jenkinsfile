@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        sh 'git pull origin master'
+        sh 'go build -v -o orderlunch.bin'
       }
     }
 
