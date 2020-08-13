@@ -3,19 +3,19 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        sh 'export GOROOT=/usr/local/go; export PATH=$GOROOT/bin:$PATH; go get -u github.com/gorilla/mux; go get -u github.com/lib/pq; go build -v -o orderlunch.bin;  '
+        sh '/var/jenkins_home/workspace/script/build.sh'
       }
     }
 
     stage('Test') {
       steps {
-        sh 'go test -v'
+        sh '/var/jenkins_home/workspace/script/test.sh'
       }
     }
 
     stage('Deploy') {
       steps {
-        sh 'go run main.go'
+        sh '/var/jenkins_home/workspace/script/deploy.sh'
       }
     }
 
