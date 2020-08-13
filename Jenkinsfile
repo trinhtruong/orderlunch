@@ -3,7 +3,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        sh 'wget https://dl.google.com/go/go1.13.3.linux-amd64.tar.gz;tar -xvf go1.13.3.linux-amd64.tar.gz;mv go /usr/local; '
+        sh 'go build -v -o orderlunch.bin'
       }
     }
 
