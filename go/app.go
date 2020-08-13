@@ -27,7 +27,7 @@ var AppObj App
 // Initialize Initialize
 func Initialize(user, password, dbname string) {
 	connectionString :=
-		fmt.Sprintf("user=%s password=%s dbname=%s sslmode=disable", user, password, dbname)
+		fmt.Sprintf("user=%s password=%s dbname=%s host=10.1.110.64 sslmode=disable", user, password, dbname)
 
 	var err error
 	AppObj.DB, err = sql.Open("postgres", connectionString) //"user=postgres password=1 dbname=orderlunch sslmode=disable")

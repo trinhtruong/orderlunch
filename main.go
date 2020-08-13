@@ -20,5 +20,5 @@ func main() {
 	log.Printf("Server started")
 
 	sw.Initialize("postgres", "1", "orderlunch")
-	sw.Run(":8080")
+	sw.Run(":8082")
 }

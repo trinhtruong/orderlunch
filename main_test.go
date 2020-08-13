@@ -88,5 +88,3 @@ func TestCreateOrder(t *testing.T) {
 		t.Errorf("Expected product ID to be '1'. Got '%v'", m["id"])
 	}
 }
-
-// b743596e9b7949af987d28a8cc01bfee
