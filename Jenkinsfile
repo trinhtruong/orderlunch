@@ -3,10 +3,7 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        sh 'export GOROOT=/usr/local/go'
-        sh 'export PATH=$GOROOT/bin:$PATH; go get -u github.com/gorilla/mux'
-        sh 'go get -u github.com/lib/pq'
-        sh 'go build -v -o orderlunch.bin'
+        sh 'export GOROOT=/usr/local/go; export PATH=$GOROOT/bin:$PATH; go get -u github.com/gorilla/mux; go get -u github.com/lib/pq; go build -v -o orderlunch.bin;  '
       }
     }
 
