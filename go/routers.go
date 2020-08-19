@@ -49,7 +49,7 @@ func NewRouter() *mux.Router {
 
 // Index Index
 func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello World!")
+	fmt.Fprintf(w, "World Go!")
 }
 
 var routes = Routes{
@@ -78,14 +78,14 @@ var routes = Routes{
 		"AddOrder",
 		strings.ToUpper("Post"),
 		"/order",
-		AddOrder,
+		TokenAuthMiddleware(AddOrder),
 	},
 
 	Route{
 		"DeleteOrder",
 		strings.ToUpper("Delete"),
 		"/order/{orderId}",
-		DeleteOrder,
+		TokenAuthMiddleware(DeleteOrder),
 	},
 
 	Route{
@@ -113,7 +113,7 @@ var routes = Routes{
 		"UpdateOrder",
 		strings.ToUpper("Put"),
 		"/order/{orderId}",
-		UpdateOrder,
+		TokenAuthMiddleware(UpdateOrder),
 	},
 
 	Route{
@@ -125,8 +125,15 @@ var routes = Routes{
 
 	Route{
 		"LoginUser",
-		strings.ToUpper("Get"),
+		strings.ToUpper("Post"),
 		"/user/login",
 		LoginUser,
+	},
+
+	Route{
+		"RefreshTokenUser",
+		strings.ToUpper("Post"),
+		"/user/refreshToken",
+		RefreshTokenUser,
 	},
 }

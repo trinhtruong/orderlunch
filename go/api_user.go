@@ -11,17 +11,112 @@
 package swagger
 
 import (
+	"database/sql"
+	"encoding/json"
+	"fmt"
 	"net/http"
+	"os"
+	"strconv"
+
+	"github.com/dgrijalva/jwt-go"
 )
 
 // CreateUser This can only be done by the logged in user
 func CreateUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+	var u User
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&u); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := u.createUser(AppObj.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, u)
 }
 
 // LoginUser Logs user into the system
 func LoginUser(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+	var u User
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&u); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	userLoginInfo := User{ID: u.ID}
+	if err := userLoginInfo.getLoginInfo(AppObj.DB); err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "User not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	if u.Username != userLoginInfo.Username || u.Password != userLoginInfo.Password {
+		respondWithError(w, http.StatusUnauthorized, "Invalid user name or password")
+		return
+	}
+
+	token, err := CreateToken(u.ID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	response := map[string]string{
+		"access_token":  token.AccessToken,
+		"refresh_token": token.RefreshToken,
+	}
+	respondWithJSON(w, http.StatusOK, response)
+}
+
+// RefreshTokenUser Token is refresh
+func RefreshTokenUser(w http.ResponseWriter, r *http.Request) {
+	var tdr TokenDetails
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&tdr); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	token, err := jwt.Parse(tdr.RefreshToken, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(os.Getenv("REFRESH_SECRET")), nil
+	})
+
+	if _, ok := token.Claims.(jwt.Claims); !ok && !token.Valid && err != nil {
+		respondWithError(w, http.StatusUnauthorized, err.Error())
+		return
+	}
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if ok && token.Valid {
+		userID, err := strconv.ParseInt(fmt.Sprintf("%.f", claims["user_id"]), 10, 64)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		td, err := CreateToken(userID)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		response := map[string]string{
+			"access_token":  td.AccessToken,
+			"refresh_token": td.RefreshToken,
+		}
+		respondWithJSON(w, http.StatusOK, response)
+	} else {
+		respondWithError(w, http.StatusUnauthorized, "Refresh token expired")
+	}
 }

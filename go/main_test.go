@@ -1,6 +1,6 @@
 // main_test.go
 
-package main
+package swagger
 
 import (
 	"bytes"
@@ -10,12 +10,10 @@ import (
 	"net/http/httptest"
 	"os"
 	"testing"
-
-	sw "./go"
 )
 
 func TestMain(m *testing.M) {
-	sw.Initialize("postgres", "1", "orderlunch")
+	Initialize("postgres", "1", "orderlunch")
 
 	ensureTableExists()
 	code := m.Run()
@@ -24,14 +22,14 @@ func TestMain(m *testing.M) {
 }
 
 func ensureTableExists() {
-	if _, err := sw.AppObj.DB.Exec(tableCreationQuery); err != nil {
+	if _, err := AppObj.DB.Exec(tableCreationQuery); err != nil {
 		log.Fatal(err)
 	}
 }
 
 func clearTable() {
-	sw.AppObj.DB.Exec("DELETE FROM orders")
-	sw.AppObj.DB.Exec("ALTER SEQUENCE orders_id_seq RESTART WITH 1")
+	AppObj.DB.Exec("DELETE FROM orders")
+	AppObj.DB.Exec("ALTER SEQUENCE orders_id_seq RESTART WITH 1")
 }
 
 const tableCreationQuery = `CREATE TABLE IF NOT EXISTS public.orders
@@ -47,7 +45,7 @@ const tableCreationQuery = `CREATE TABLE IF NOT EXISTS public.orders
 
 func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 	rr := httptest.NewRecorder()
-	sw.AppObj.Router.ServeHTTP(rr, req)
+	AppObj.Router.ServeHTTP(rr, req)
 
 	return rr
 }

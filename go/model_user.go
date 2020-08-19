@@ -10,6 +10,10 @@
 
 package swagger
 
+import (
+	"database/sql"
+)
+
 // User user in Ginno
 type User struct {
 	ID int64 `json:"id,omitempty"`
@@ -22,4 +26,20 @@ type User struct {
 
 	// User Status
 	UserStatus string `json:"userStatus,omitempty"`
+}
+
+func (u *User) createUser(db *sql.DB) error {
+	err := db.QueryRow(
+		"INSERT INTO users(username, email, password, userstatus) VALUES($1, $2, $3, $4) RETURNING id",
+		u.Username, u.Email, u.Password, u.UserStatus).Scan(&u.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (u *User) getLoginInfo(db *sql.DB) error {
+	err := db.QueryRow("SELECT * FROM users WHERE id=$1",
+		u.ID).Scan(&u.ID, &u.Username, &u.Password, &u.UserStatus, &u.Email)
+	return err
 }
